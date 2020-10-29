@@ -2,7 +2,7 @@
 #include "types.h"
 #include "user.h"
 
-int number_of_processes = 10;
+int number_of_processes = 25;
 
 int main(int argc, char *argv[])
 {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
           }
         }
       }
-    //   printf(1, "Process: %d Finished\n", j);
+      printf(1, "Process: %d Finished\n", j);
       exit();
     }
     else{

@@ -405,7 +405,7 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
+    #ifdef RR
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
@@ -427,6 +427,51 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
+    #endif
+
+    #ifdef FCFS
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    struct proc * nxt=0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      if (p->state != RUNNABLE)
+        continue;
+      if(nxt==0)
+      {
+        nxt=p;
+      }
+      else
+      {
+        if(p->ctime < nxt->ctime)
+        {
+          nxt=p;
+        }
+      }
+    }
+    if(nxt==0)
+    {
+      release(&ptable.lock);
+      continue;
+    }
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = nxt;
+      switchuvm(nxt);
+      nxt->state = RUNNING;
+
+      swtch(&(c->scheduler), nxt->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    
+    release(&ptable.lock);
+    #endif
+
+  
 
   }
 }
