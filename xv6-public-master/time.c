@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
             {
                 printf(1,"error in time thing");
             }
+            //printf(1,"w %p r %p",wtime,rtime);
             printf(1,"wait time %d , run time %d\n",*wtime,*rtime);
         }
         

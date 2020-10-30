@@ -92,6 +92,7 @@ found:
   p->etime=0;
   p->iotime=0;
   p->ctime=ticks;
+  p->priority=60;
 
   release(&ptable.lock);
 
@@ -387,6 +388,40 @@ int waitx(int *wtime, int *rtime)
   }
 }
 
+int 
+set_priority(int new_priority,int pid)
+{
+  struct proc *p;
+  int flag=0;
+  if(new_priority<0 || new_priority>100 || pid<0)
+  {
+    return -1;
+  }
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid==pid)
+    {
+      flag=1;
+      break;
+    }
+  }
+  if(flag==0)
+  {
+    release(&ptable.lock);
+    return -1;
+  }
+  int old_priority=p->priority;
+  p->priority = new_priority;
+  if(new_priority <  old_priority)
+  {
+    yield();
+  }
+  release(&ptable.lock);
+  return old_priority;
+
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -454,25 +489,86 @@ scheduler(void)
       release(&ptable.lock);
       continue;
     }
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = nxt;
-      switchuvm(nxt);
-      nxt->state = RUNNING;
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    c->proc = nxt;
+    switchuvm(nxt);
+    nxt->state = RUNNING;
 
-      swtch(&(c->scheduler), nxt->context);
-      switchkvm();
+    swtch(&(c->scheduler), nxt->context);
+    switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-    
+    // Process is done running for now.
+    // It should have changed its p->state before coming back.
+    c->proc = 0;
     release(&ptable.lock);
     #endif
 
-  
+    #ifdef PBS
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    struct proc *nxt = 0;
+    struct proc *next=0;
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      if (p->state != RUNNABLE)
+        continue;
+      if (nxt == 0)
+      {
+        nxt = p;
+      }
+      else
+      {
+        if (p->priority < nxt->priority)
+        {
+          nxt = p;
+        }
+      }
+    }
+    if (nxt == 0)
+    {
+      release(&ptable.lock);
+      continue;
+    }
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      if (p->state != RUNNABLE)
+        continue;
+      if (p->state==RUNNABLE && nxt->priority == p->priority)
+      {
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
 
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+        int flag=0;
+        for(next = ptable.proc; next < &ptable.proc[NPROC]; next++)
+        {
+          if(next->state!=RUNNABLE)
+            continue;
+          if(next->state==RUNNABLE && next->priority < nxt->priority)
+          {
+            flag=1;
+            break;
+          }
+        }
+        if(flag==1)
+        {
+          break;
+        }
+      }
+    }
+    release(&ptable.lock);
+    #endif
   }
 }
 
