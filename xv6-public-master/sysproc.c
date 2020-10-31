@@ -112,3 +112,13 @@ int sys_set_priority(void)
   }
   return set_priority(new_priority,pid);
 }
+
+int sys_ps(void)
+{
+  struct procstatus *arr;
+  if(argptr(0,(void *)&arr,sizeof(arr))<0)
+  {
+    return -1;
+  }
+  return ps(arr);
+}

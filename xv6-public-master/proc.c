@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "ps.h"
 
 struct {
   struct spinlock lock;
@@ -92,7 +93,16 @@ found:
   p->etime=0;
   p->iotime=0;
   p->ctime=ticks;
+  p->lastexecuted=0;
   p->priority=60;
+  p->w_timeforrunning=0;
+  p->n_run=0;
+  p->cur_q=-1;
+  p->q[0]=0;
+  p->q[1]=0;
+  p->q[2]=0;
+  p->q[3]=0;
+  p->q[4]=0;
 
   release(&ptable.lock);
 
@@ -269,6 +279,7 @@ exit(void)
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
   curproc->etime=ticks;
+  curproc->cur_q=-1;
   sched();
   panic("zombie exit");
 }
@@ -284,10 +295,12 @@ void updatetimes(void)
     if(p->state==RUNNING)
     {
       p->rtime++;
+      p->lastexecuted=ticks;
     }
     else if(p->state==SLEEPING)
     {
       p->iotime++;
+      p->lastexecuted=ticks;
     }
   }
   release(&ptable.lock);
@@ -454,8 +467,10 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
+      p->n_run++;
       swtch(&(c->scheduler), p->context);
+     
+      //p->w_timeforrunning=0;
       switchkvm();
 
       // Process is done running for now.
@@ -496,8 +511,10 @@ scheduler(void)
     c->proc = nxt;
     switchuvm(nxt);
     nxt->state = RUNNING;
-
+    nxt->n_run++;
     swtch(&(c->scheduler), nxt->context);
+    
+  //  nxt->w_timeforrunning = 0;
     switchkvm();
 
     // Process is done running for now.
@@ -544,8 +561,10 @@ scheduler(void)
         c->proc = p;
         switchuvm(p);
         p->state = RUNNING;
-
+        p->n_run++;
         swtch(&(c->scheduler), p->context);
+        
+   //     p->w__timeforrunning = 0;
         switchkvm();
 
         // Process is done running for now.
@@ -570,6 +589,11 @@ scheduler(void)
     }
     release(&ptable.lock);
     #endif
+
+    
+
+
+
   }
 }
 
@@ -749,4 +773,68 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+char *my_strcpy(char *destination, char *source)
+{
+  char *start = destination;
+
+  while (*source != '\0')
+  {
+    *destination = *source;
+    destination++;
+    source++;
+  }
+
+  *destination = '\0'; // add '\0' at the end
+  return start;
+}
+int ps(struct procstatus *arr)
+{
+  struct proc *p;
+  int i = 0;
+  acquire(&ptable.lock);
+  
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state==UNUSED)
+      continue;
+    arr[i].pid=p->pid;
+    arr[i].priority=p->priority;
+    if(p->state==RUNNABLE)
+    {
+      my_strcpy(arr[i].state,"RUNNABLE");
+    }
+    if (p->state == RUNNING)
+    {
+      my_strcpy(arr[i].state, "RUNNING");
+    }
+    if (p->state == SLEEPING)
+    {
+      my_strcpy(arr[i].state, "SLEEPING");
+    }
+    if (p->state == ZOMBIE)
+    {
+      my_strcpy(arr[i].state, "ZOMBIE");
+    }
+    if (p->state == UNUSED)
+    {
+      my_strcpy(arr[i].state, "UNUSED");
+    }
+    if (p->state == EMBRYO)
+    {
+      my_strcpy(arr[i].state, "EMBRYO");
+    }
+    arr[i].n_run=p->n_run;
+    arr[i].cur_q=p->cur_q;
+    arr[i].rtime=p->rtime;
+    arr[i].w_timeforrunning=ticks-p->lastexecuted;
+    arr[i].q[0]=p->q[0];
+    arr[i].q[1] = p->q[1];
+    arr[i].q[2] = p->q[2];
+    arr[i].q[3] = p->q[3];
+    arr[i].q[4] = p->q[4];
+    i++;
+  }
+  release(&ptable.lock);
+  return i;
 }
