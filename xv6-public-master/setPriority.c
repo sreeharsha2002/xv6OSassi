@@ -9,6 +9,10 @@ int main(int argc, char *argv[])
     {
         printf(1, "Invalidarguments\n");
     }
+    else if(argv[1][0]=='-' || argv[2][0]=='-')
+    {
+        printf(1,"Invalid values\n");
+    }
     else
     {
         if(set_priority(atoi(argv[1]),atoi(argv[2]))<0)

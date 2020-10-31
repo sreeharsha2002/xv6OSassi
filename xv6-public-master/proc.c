@@ -406,6 +406,7 @@ set_priority(int new_priority,int pid)
       break;
     }
   }
+  
   if(flag==0)
   {
     release(&ptable.lock);
@@ -413,11 +414,11 @@ set_priority(int new_priority,int pid)
   }
   int old_priority=p->priority;
   p->priority = new_priority;
+  release(&ptable.lock);
   if(new_priority <  old_priority)
   {
     yield();
   }
-  release(&ptable.lock);
   return old_priority;
 
 }
