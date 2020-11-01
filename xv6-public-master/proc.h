@@ -54,7 +54,7 @@ struct proc {
   int etime;                   //end time
   int iotime;                  //time taken to do io  
   int priority;                //default priority of the process is 60
-  int w_timeforrunning;        //Time for which the process has been waiting (reseting this to 0 whenever the process gets to run on CPU or if a change in the queue takes place (in the case of MLFQ scheduler))
+  int currentslice;            //current time slice for this process
   int lastexecuted;            // when the process is last executed
   int n_run;                   //Number of times the process was picked by the scheduler
   int cur_q;                   //Current queue

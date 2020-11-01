@@ -7,7 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "ps.h"
-
+int maxarr[]={1,2,4,8,16};
+struct proc *qlist[5];
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -93,16 +94,23 @@ found:
   p->etime=0;
   p->iotime=0;
   p->ctime=ticks;
-  p->lastexecuted=0;
+  p->lastexecuted=ticks;
   p->priority=60;
-  p->w_timeforrunning=0;
+  
   p->n_run=0;
   p->cur_q=-1;
+  #ifdef MLFQ
+    p->cur_q=0;
+  #endif
+  p->currentslice=0;
   p->q[0]=0;
   p->q[1]=0;
   p->q[2]=0;
   p->q[3]=0;
   p->q[4]=0;
+#ifdef YESPLOT
+  cprintf("%d %d %d\n", ticks, p->pid, p->cur_q);
+#endif
 
   release(&ptable.lock);
 
@@ -279,6 +287,9 @@ exit(void)
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
   curproc->etime=ticks;
+  // #ifdef YESPLOT
+  // cprintf("%d %d %d exit\n", ticks, p->pid, p->cur_q);
+  // #endif
   curproc->cur_q=-1;
   sched();
   panic("zombie exit");
@@ -296,6 +307,11 @@ void updatetimes(void)
     {
       p->rtime++;
       p->lastexecuted=ticks;
+      p->currentslice++;
+      if(p->cur_q!=-1)
+      {
+        p->q[p->cur_q]++;
+      }
     }
     else if(p->state==SLEEPING)
     {
@@ -472,6 +488,7 @@ scheduler(void)
      
       //p->w_timeforrunning=0;
       switchkvm();
+      p->lastexecuted = ticks;
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
@@ -494,7 +511,7 @@ scheduler(void)
       }
       else
       {
-        if(p->ctime < nxt->ctime)
+        if (p->ctime < nxt->ctime)
         {
           nxt=p;
         }
@@ -516,10 +533,11 @@ scheduler(void)
     
   //  nxt->w_timeforrunning = 0;
     switchkvm();
+    nxt->lastexecuted = ticks;
 
     // Process is done running for now.
     // It should have changed its p->state before coming back.
-    c->proc = 0;
+    c->proc = 0;  
     release(&ptable.lock);
     #endif
 
@@ -566,6 +584,7 @@ scheduler(void)
         
    //     p->w__timeforrunning = 0;
         switchkvm();
+        p->lastexecuted = ticks;
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
@@ -590,8 +609,87 @@ scheduler(void)
     release(&ptable.lock);
     #endif
 
-    
+ 
+    #ifdef MLFQ
+    acquire(&ptable.lock);
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      if(p->state!=RUNNABLE)
+        continue;
+      if(ticks - p->lastexecuted > 50)
+      {
+        if(p->cur_q!=0)
+        {
+          p->cur_q--;
+          #ifdef YESPLOT
+          cprintf("%d %d %d\n",ticks,p->pid,p->cur_q);
+          #endif
+          p->currentslice=0;
+          p->lastexecuted=ticks;
+        }
+      }
+    }
+    struct proc *top=0;
+    for(int i=0;i<5;i++)
+    {
+      for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+      {
+        if (p->state != RUNNABLE)
+          continue;
+        if(p->cur_q==i)
+        {
+          if(top==0)
+          {
+            top=p;
+          }
+          else if(p->lastexecuted < top->lastexecuted )
+          {
+            top=p;
+          }
+        }
+      }
+      if(top==0)
+        continue;
+     
+      top->currentslice=0;
+      while(top->state==RUNNABLE)
+      {
+        c->proc = top;
+        switchuvm(top);
+        top->state = RUNNING;
+        
+        swtch(&(c->scheduler), top->context);
 
+        //p->w_timeforrunning=0;
+        switchkvm();
+        
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+        if(top->currentslice>=maxarr[top->cur_q])
+        {
+          break;
+        }
+      }
+      if (top->currentslice >= maxarr[top->cur_q])
+      {
+        if (top->cur_q != 4)
+        {
+          //demote priority
+          top->cur_q++;
+         #ifdef YESPLOT
+          cprintf("%d %d %d\n", ticks, top->pid, top->cur_q);
+          #endif
+        }
+        top->currentslice = 0;
+      }
+      top->n_run++;
+      top->lastexecuted=ticks;
+      break;
+    }
+    release(&ptable.lock);
+    #endif
 
 
   }
@@ -827,7 +925,8 @@ int ps(struct procstatus *arr)
     arr[i].n_run=p->n_run;
     arr[i].cur_q=p->cur_q;
     arr[i].rtime=p->rtime;
-    arr[i].w_timeforrunning=ticks-p->lastexecuted;
+    // cprintf("NO of ticks %d",ticks);
+    arr[i].w_timeforrunning=ticks - p->lastexecuted;
     arr[i].q[0]=p->q[0];
     arr[i].q[1] = p->q[1];
     arr[i].q[2] = p->q[2];
