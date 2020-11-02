@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     {
         printf(1, "Invalidarguments\n");
     }
-    else if(argv[1][0]=='-' || argv[2][0]=='-')
+    else if(argv[1][0]<'0' ||argv[1][0]>'9' || argv[2][0]<'0' || argv[2][0]>'9')
     {
         printf(1,"Invalid values\n");
     }

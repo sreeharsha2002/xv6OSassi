@@ -7,8 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "ps.h"
-int maxarr[]={1,2,4,8,16};
-struct proc *qlist[5];
+int maxarr[]={1,2,4,8,16};          //max ticks array in queue
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -93,14 +92,14 @@ found:
   p->rtime=0;
   p->etime=0;
   p->iotime=0;
-  p->ctime=ticks;
-  p->lastexecuted=ticks;
-  p->priority=60;
+  p->ctime=ticks;              //initialising ctime to current ticks
+  p->lastexecuted=ticks;         //initialsing lastexecuted to current ticks
+  p->priority=60;                 //default priority
   
   p->n_run=0;
-  p->cur_q=-1;
+  p->cur_q=-1;                   //for other schedulers initialisation to -1 as of no use
   #ifdef MLFQ
-    p->cur_q=0;
+    p->cur_q=0;                 //if scheduler is mlfq all the processes are 0th queue intially
   #endif
   p->currentslice=0;
   p->q[0]=0;
@@ -109,7 +108,7 @@ found:
   p->q[3]=0;
   p->q[4]=0;
 #ifdef YESPLOT
-  cprintf("%d %d %d\n", ticks, p->pid, p->cur_q);
+  cprintf("%d %d %d\n", ticks, p->pid, p->cur_q);           //for plotting graph
 #endif
 
   release(&ptable.lock);
@@ -285,11 +284,14 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
+  curproc->etime = ticks; //endtime for a process
+  #ifdef YESPLOT
+  cprintf("%d %d %d\n", ticks, curproc->pid, curproc->cur_q);
+  #endif
+  // if(curproc->pid==3)
+  //   cprintf("%d",curproc->etime-curproc->ctime);
   curproc->state = ZOMBIE;
-  curproc->etime=ticks;
-  // #ifdef YESPLOT
-  // cprintf("%d %d %d exit\n", ticks, p->pid, p->cur_q);
-  // #endif
+  
   curproc->cur_q=-1;
   sched();
   panic("zombie exit");
@@ -305,8 +307,8 @@ void updatetimes(void)
   {
     if(p->state==RUNNING)
     {
-      p->rtime++;
-      p->lastexecuted=ticks;
+      p->rtime++;                        //updating runtime
+      p->lastexecuted=ticks;           
       p->currentslice++;
       if(p->cur_q!=-1)
       {
@@ -389,7 +391,7 @@ int waitx(int *wtime, int *rtime)
         // cprintf("e %d",p->etime);
         // cprintf("r %d",p->rtime);
         // cprintf("io %d",p->iotime);
-        *wtime=p->etime - p->ctime - p->iotime - p->rtime;
+        *wtime=p->etime - p->ctime - p->iotime - p->rtime;  
         *rtime=p->rtime;
         pid = p->pid;
         kfree(p->kstack);
@@ -444,7 +446,7 @@ set_priority(int new_priority,int pid)
   int old_priority=p->priority;
   p->priority = new_priority;
   release(&ptable.lock);
-  if(new_priority <  old_priority)
+  if(new_priority <  old_priority) //if oldpriority is greater then we have to again schedule 
   {
     yield();
   }
@@ -501,7 +503,7 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     struct proc * nxt=0;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)//finding minimum ctimed process of all processes
     {
       if (p->state != RUNNABLE)
         continue;
@@ -546,7 +548,7 @@ scheduler(void)
     acquire(&ptable.lock);
     struct proc *nxt = 0;
     struct proc *next=0;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) //finiding minimum priority
     {
       if (p->state != RUNNABLE)
         continue;
@@ -567,11 +569,11 @@ scheduler(void)
       release(&ptable.lock);
       continue;
     }
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)//round robin for same priority things
     {
       if (p->state != RUNNABLE)
         continue;
-      if (p->state==RUNNABLE && nxt->priority == p->priority)
+      if (p->state==RUNNABLE && nxt->priority == p->priority)    //if the process is runnable and equal to minprioritythen we have to assign it
       {
         // Switch to chosen process.  It is the process's job
         // to release ptable.lock and then reacquire it
@@ -611,12 +613,12 @@ scheduler(void)
 
  
     #ifdef MLFQ
-    acquire(&ptable.lock);
+    acquire(&ptable.lock);//aging of proccess
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
       if(p->state!=RUNNABLE)
         continue;
-      if(ticks - p->lastexecuted > 50)
+      if(ticks - p->lastexecuted > 25)
       {
         if(p->cur_q!=0)
         {
@@ -677,10 +679,20 @@ scheduler(void)
         if (top->cur_q != 4)
         {
           //demote priority
+          // if(top->cur_q==-1)
+          // {
+          //   if(top->state==ZOMBIE)
+          //   {
+          //     cprintf("ZOMBIE\n");
+          //   }
+          // }
+          if(top->state !=ZOMBIE)
+          {
           top->cur_q++;
          #ifdef YESPLOT
           cprintf("%d %d %d\n", ticks, top->pid, top->cur_q);
           #endif
+          }
         }
         top->currentslice = 0;
       }
