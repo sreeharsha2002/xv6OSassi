@@ -53,6 +53,12 @@ struct proc {
   int rtime;                   //run time
   int etime;                   //end time
   int iotime;                  //time taken to do io  
+  int priority;                //default priority of the process is 60
+  int currentslice;            //current time slice for this process
+  int lastexecuted;            // when the process is last executed
+  int n_run;                   //Number of times the process was picked by the scheduler
+  int cur_q;                   //Current queue
+  int q[5];                    //​ Number of ticks the process has received at each of the 5 queues
 };
 
 // Process memory is laid out contiguously, low addresses first:
