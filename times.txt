@@ -1,0 +1,486 @@
+gcc -Werror -Wall -o mkfs mkfs.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ulib.o ulib.c
+gcc -m32 -gdwarf-2 -Wa,-divide   -c -o usys.o usys.S
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o printf.o printf.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o umalloc.o umalloc.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o cat.o cat.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _cat cat.o ulib.o usys.o printf.o umalloc.o
+objdump -S _cat > cat.asm
+objdump -t _cat | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > cat.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o echo.o echo.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _echo echo.o ulib.o usys.o printf.o umalloc.o
+objdump -S _echo > echo.asm
+objdump -t _echo | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > echo.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o forktest.o forktest.c
+# forktest has less library code linked in - needs to be small
+# in order to be able to max out the proc table.
+ld -m    elf_i386 -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
+objdump -S _forktest > forktest.asm
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o grep.o grep.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _grep grep.o ulib.o usys.o printf.o umalloc.o
+objdump -S _grep > grep.asm
+objdump -t _grep | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > grep.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o init.o init.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _init init.o ulib.o usys.o printf.o umalloc.o
+objdump -S _init > init.asm
+objdump -t _init | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > init.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o kill.o kill.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _kill kill.o ulib.o usys.o printf.o umalloc.o
+objdump -S _kill > kill.asm
+objdump -t _kill | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kill.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ln.o ln.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _ln ln.o ulib.o usys.o printf.o umalloc.o
+objdump -S _ln > ln.asm
+objdump -t _ln | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > ln.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ls.o ls.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _ls ls.o ulib.o usys.o printf.o umalloc.o
+objdump -S _ls > ls.asm
+objdump -t _ls | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > ls.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o mkdir.o mkdir.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _mkdir mkdir.o ulib.o usys.o printf.o umalloc.o
+objdump -S _mkdir > mkdir.asm
+objdump -t _mkdir | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > mkdir.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o rm.o rm.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _rm rm.o ulib.o usys.o printf.o umalloc.o
+objdump -S _rm > rm.asm
+objdump -t _rm | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > rm.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o sh.o sh.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _sh sh.o ulib.o usys.o printf.o umalloc.o
+objdump -S _sh > sh.asm
+objdump -t _sh | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > sh.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o stressfs.o stressfs.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _stressfs stressfs.o ulib.o usys.o printf.o umalloc.o
+objdump -S _stressfs > stressfs.asm
+objdump -t _stressfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > stressfs.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o usertests.o usertests.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _usertests usertests.o ulib.o usys.o printf.o umalloc.o
+objdump -S _usertests > usertests.asm
+objdump -t _usertests | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > usertests.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o wc.o wc.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _wc wc.o ulib.o usys.o printf.o umalloc.o
+objdump -S _wc > wc.asm
+objdump -t _wc | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > wc.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o time.o time.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _time time.o ulib.o usys.o printf.o umalloc.o
+objdump -S _time > time.asm
+objdump -t _time | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > time.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o benchmark.o benchmark.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _benchmark benchmark.o ulib.o usys.o printf.o umalloc.o
+objdump -S _benchmark > benchmark.asm
+objdump -t _benchmark | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > benchmark.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o setPriority.o setPriority.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _setPriority setPriority.o ulib.o usys.o printf.o umalloc.o
+objdump -S _setPriority > setPriority.asm
+objdump -t _setPriority | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > setPriority.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o test.o test.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _test test.o ulib.o usys.o printf.o umalloc.o
+objdump -S _test > test.asm
+objdump -t _test | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > test.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ps.o ps.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _ps ps.o ulib.o usys.o printf.o umalloc.o
+objdump -S _ps > ps.asm
+objdump -t _ps | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > ps.sym
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o zombie.o zombie.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _zombie zombie.o ulib.o usys.o printf.o umalloc.o
+objdump -S _zombie > zombie.asm
+objdump -t _zombie | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > zombie.sym
+./mkfs fs.img README _cat _echo _forktest _grep _init _kill _ln _ls _mkdir _rm _sh _stressfs _usertests _wc _time _benchmark _setPriority _test _ps _zombie 
+nmeta 59 (boot, super, log blocks 30 inode blocks 26, bitmap blocks 1) blocks 941 total 1000
+balloc: first 840 blocks have been allocated
+balloc: write bitmap block at sector 58
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie -fno-pic -O -nostdinc -I. -c bootmain.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie -fno-pic -nostdinc -I. -c bootasm.S
+ld -m    elf_i386 -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
+objdump -S bootblock.o > bootblock.asm
+objcopy -S -O binary -j .text bootblock.o bootblock
+./sign.pl bootblock
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o bio.o bio.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o console.o console.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o exec.o exec.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o file.o file.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o fs.o fs.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ide.o ide.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o ioapic.o ioapic.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o kalloc.o kalloc.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o kbd.o kbd.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o lapic.o lapic.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o log.o log.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o main.o main.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o mp.o mp.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o picirq.o picirq.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o pipe.o pipe.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o proc.o proc.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o sleeplock.o sleeplock.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o spinlock.o spinlock.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o string.o string.c
+gcc -m32 -gdwarf-2 -Wa,-divide   -c -o swtch.o swtch.S
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o syscall.o syscall.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o sysfile.o sysfile.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o sysproc.o sysproc.c
+gcc -m32 -gdwarf-2 -Wa,-divide   -c -o trapasm.o trapasm.S
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o trap.o trap.c
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o uart.o uart.c
+./vectors.pl > vectors.S
+gcc -m32 -gdwarf-2 -Wa,-divide   -c -o vectors.o vectors.S
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie   -c -o vm.o vm.c
+gcc -m32 -gdwarf-2 -Wa,-divide   -c -o entry.o entry.S
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie -fno-pic -nostdinc -I. -c entryother.S
+ld -m    elf_i386 -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
+objcopy -S -O binary -j .text bootblockother.o entryother
+objdump -S bootblockother.o > entryother.asm
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector "-DMLFQ" "-DYESPLOT" -fno-pie -no-pie -nostdinc -I. -c initcode.S
+ld -m    elf_i386 -N -e start -Ttext 0 -o initcode.out initcode.o
+objcopy -S -O binary initcode.out initcode
+objdump -S initcode.o > initcode.asm
+ld -m    elf_i386 -T kernel.ld -o kernel entry.o bio.o console.o exec.o file.o fs.o ide.o ioapic.o kalloc.o kbd.o lapic.o log.o main.o mp.o picirq.o pipe.o proc.o sleeplock.o spinlock.o string.o swtch.o syscall.o sysfile.o sysproc.o trapasm.o trap.o uart.o vectors.o vm.o  -b binary initcode entryother
+objdump -S kernel > kernel.asm
+objdump -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kernel.sym
+dd if=/dev/zero of=xv6.img count=10000
+dd if=bootblock of=xv6.img conv=notrunc
+dd if=kernel of=xv6.img seek=1 conv=notrunc
+qemu-system-i386 -serial mon:stdio -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp 2 -m 512 
+xv6...
+cpu1: starting 1
+0 1 0
+cpu0: starting 0
+1 1 1
+sb: size 1000 nblocks 941 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+4 2 0
+5 2 1
+$ test 2 25
+947 3 0
+948 3 1
+948 4 0
+948 5 0
+948 6 0
+948 7 0
+949 4 1
+949 8 0
+949 9 0
+949 10 0
+950 5 1
+950 11 0
+950 3 2
+951 6 1
+951 7 1
+952 8 1
+952 9 1
+953 10 1
+954 4 2
+955 5 2
+956 6 2
+957 7 2
+958 8 2
+959 9 2
+959 12 0
+959 13 0
+959 14 0
+960 15 0
+960 10 2
+960 16 0
+960 17 0
+960 18 0
+961 11 1
+961 19 0
+961 20 0
+961 21 0
+962 22 0
+962 12 1
+962 23 0
+962 24 0
+962 25 0
+963 3 3
+963 13 1
+964 14 1
+964 15 1
+965 16 1
+965 17 1
+966 18 1
+966 19 1
+967 20 1
+967 21 1
+968 22 1
+968 23 1
+969 24 1
+970 11 2
+971 12 2
+972 13 2
+973 14 2
+974 15 2
+975 16 2
+976 17 2
+977 18 2
+978 19 2
+979 20 2
+980 21 2
+980 4 1
+981 22 2
+981 5 1
+982 23 2
+982 6 1
+983 24 2
+983 7 1
+984 4 2
+984 8 1
+985 5 2
+985 9 1
+986 6 2
+986 10 1
+987 7 2
+988 8 2
+989 9 2
+989 3 2
+990 10 2
+993 11 3
+994 12 3
+997 13 3
+998 14 3
+1001 15 3
+1002 16 3
+1005 17 3
+1005 19 1
+1005 20 1
+1006 18 3
+1006 21 1
+1007 19 2
+1007 22 1
+1008 20 2
+1008 23 1
+1009 21 2
+1009 24 1
+1010 22 2
+1010 4 1
+1011 23 2
+1011 5 1
+1012 24 2
+1012 6 1
+1013 4 2
+1013 7 1
+1014 5 2
+1014 8 1
+1015 6 2
+1015 3 1
+1015 9 1
+1016 7 2
+1016 10 1
+1016 26 0
+1016 27 0
+1017 8 2
+1017 28 0
+1018 25 1
+1018 26 1
+1019 27 1
+1019 11 2
+1019 28 1
+1021 9 2
+1021 12 2
+1021 10 2
+1023 25 2
+1023 13 2
+1023 26 2
+1025 27 2
+1025 14 2
+1025 28 2
+1029 19 3
+1029 15 2
+1029 16 2
+1029 20 3
+1033 21 3
+1033 17 2
+1033 18 2
+1033 22 3
+1037 23 3
+1037 24 3
+1041 4 3
+1041 6 1
+1041 5 3
+1043 6 2
+1043 8 1
+1045 8 2
+1045 11 1
+1045 7 3
+1047 11 2
+1047 10 1
+1047 12 1
+1049 10 2
+1049 13 1
+1049 25 1
+1049 26 1
+1049 9 3
+1051 12 2
+1051 14 1
+1051 27 1
+1051 28 1
+1051 13 2
+1053 25 2
+1053 26 2
+1055 14 2
+1055 15 1
+1055 16 1
+1055 19 2
+1055 20 2
+1055 27 2
+1057 28 2
+1057 15 2
+1059 16 2
+1059 18 1
+1059 21 2
+1059 22 2
+1061 18 2
+1061 17 3
+1065 6 3
+1065 23 2
+1065 24 2
+1065 8 3
+1069 11 3
+1069 4 2
+1069 5 2
+1069 10 3
+1073 12 3
+1073 7 2
+1073 13 3
+1077 25 3
+1077 9 2
+1077 26 3
+1081 14 3
+1081 20 1
+1081 27 1
+1081 19 3
+1083 20 2
+1083 15 1
+1083 28 1
+1083 27 2
+1085 15 2
+1085 16 1
+1085 21 1
+1085 22 1
+1085 28 2
+1087 16 2
+1087 17 2
+1087 18 1
+1087 21 2
+1089 22 2
+1089 18 2
+1091 6 2
+1091 8 2
+1092 24 2
+1095 4 3
+1095 10 2
+1095 11 2
+1096 5 3
+1099 7 3
+1099 12 2
+1099 13 2
+1100 9 3
+1103 20 3
+1103 25 2
+1103 26 2
+1104 27 3
+1107 15 3
+1107 14 2
+1107 19 2
+1108 28 3
+1111 16 3
+1112 17 3
+1115 21 3
+1115 22 1
+1116 18 3
+1117 22 2
+1117 8 1
+1117 23 1
+1119 8 2
+1119 23 1
+1120 6 3
+1123 10 3
+1123 4 2
+1123 5 2
+1124 11 3
+1127 12 3
+1127 7 2
+1127 9 2
+1128 13 3
+1131 25 3
+1131 20 2
+1131 27 2
+1132 26 3
+1135 14 3
+1135 15 2
+1135 28 2
+1136 19 3
+1139 22 3
+1139 16 2
+1139 17 2
+1140 8 3
+1143 4 3
+1143 18 2
+1143 21 2
+1144 5 3
+1147 7 3
+1147 6 2
+1148 9 3
+1151 20 3
+1151 10 2
+1151 11 2
+1152 27 3
+1155 15 3
+1155 12 2
+1155 13 2
+1156 28 3
+1159 16 3
+1159 25 2
+1159 26 2
+1160 17 3
+1163 18 3
+1163 14 2
+1163 19 2
+1164 21 3
+1164 10 2
+1166 6 2
+1166 8 2
+1166 22 2
+1168 11 3
+1170 12 3
+1170 4 2
+1170 5 2
+1172 13 3
+1174 25 3
+1174 7 2
+1174 9 2
+1176 26 3
+1178 14 3
+1178 20 2
+1178 27 2
+1180 19 3
+1182 8 3
+1182 15 2
+1182 28 2
+1184 22 3
+1186 4 3
+1186 16 2
+1186 17 2
+1188 5 2
+1188 9 2
+1188 20 2
+1188 27 2
+1188 15 2
+1188 28 2
+1188 16 2
+1188 17 2
+1188 18 3
+1189 21 3
+1189 11 3
+1189 12 3
+1189 13 3
+1189 25 3
+1189 26 3
+1189 14 3
+1189 19 3
+1190 7 3
+1190 8 3
+1190 4 3
+1190 7 3
+1191 22 3
+1191 3 1
+$ QEMU: Terminated
+
